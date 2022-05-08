@@ -49,6 +49,20 @@ const DefaultFactory = {
             left,
             right
         }
+    },
+    AssignmentOperator(operator, left, right) {
+        return {
+            type: 'AssignmentExpression',
+            operator: operator,
+            left: left,
+            right: right
+        }
+    },
+    Identifier(name) {
+        return {
+            type: 'Identifier',
+            name
+        }
     }
 }
 
@@ -190,11 +204,69 @@ class Parser {
 
     /**
      * Expression
-     *  : Literal
+     *  : AssignmentExpression
      *  ;
      */
     Expression() {
-        return this.AdditiveExpression();
+        return this.AssignmentExpression();
+    }
+
+    _isAssignmentOperator(tokenType) {
+        return tokenType === 'SIMPLE_ASSIGN' || tokenType == 'COMPLEX_ASSIGN';
+    }
+
+    _checkValidAssignmentTarget(node) {
+        if (node.type === 'Identifier') {
+            return node;
+        }
+        throw new SyntaxError('Invalid left-hand side in assignment expression');
+    }
+
+    /**
+     * AssignmentExpression
+     *  : AdditiveExpression
+     *  | LeftHandSideExpression AssignmentOperator AssignmentExpression
+     *  ; 
+     */
+    AssignmentExpression() {
+        const left = this.AdditiveExpression();
+
+        if (!this._isAssignmentOperator(this._lookahead.type)) {
+            return left;
+        }
+
+        return factory.AssignmentOperator(
+            this.AssignmentOperator().value,
+            this._checkValidAssignmentTarget(left),
+            this.AssignmentExpression()
+        );
+    }
+
+    /**
+     * AssignmentOperator
+     *  : SIMPLE_ASSIGN
+     *  | COMPLEX_ASSIGN
+     *  ;
+     */
+    AssignmentOperator() {
+        if (this._lookahead.type === 'SIMPLE_ASSIGN') {
+            return this._eat('SIMPLE_ASSIGN');
+        }
+        return this._eat('COMPLEX_ASSIGN');
+    }
+
+    /**
+     * LeftHandSideExpression
+     *  : Identifier
+     *  ;
+     */
+    LeftHandSideExpression() {
+        return this.Identifier();
+    }
+
+    Identifier() {
+        const name = this._eat('IDENTIFIER').value;
+        return factory.Identifier(name);
     }
 
     /**
@@ -242,15 +314,23 @@ class Parser {
      * PrimaryExpression
      *  : Literal
      *  | ParenthesizedExpression
+     *  | LeftHandSideExpression
      *  ;
      */
     PrimaryExpression() {
+        if (this._isLiteral(this._lookahead.type)) {
+            return this.Literal();
+        }
         switch (this._lookahead.type) {
             case '(':
                 return this.ParenthesizedExpression();
             default:
-                return this.Literal();
+                return this.LeftHandSideExpression();
         }
+    }
+
+    _isLiteral(tokenType) {
+        return tokenType === 'NUMBER' || tokenType === 'STRING';
     }
 
     /**
