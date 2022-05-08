@@ -208,22 +208,13 @@ class Parser {
             'MultiplicativeExpression',
             'ADDITIVE_OPERATOR'
         );
-        let left = this.MultiplicativeExpression();
-
-        while (this._lookahead.type === 'ADDITIVE_OPERATOR') {
-            // Operator: +, -
-            const operator = this._eat('ADDITIVE_OPERATOR').value;
-            const right = this.MultiplicativeExpression();
-            left = factory.BinaryExpression(operator, left, right);
-        }
-
-        return left;
     }
 
     /**
      * MultiplicativeExpression
      *  : PrimaryExpression
-     * | MultiplicativeExpression MULTIPLICATIVE_OPERATOR PrimaryExpression -> PrimaryExpression MULTIPLICATIVE_OPERATOR PrimaryExpression MULTIPLICATIVE_OPERATOR PrimaryExpression
+     *  | MultiplicativeExpression MULTIPLICATIVE_OPERATOR PrimaryExpression -> PrimaryExpression MULTIPLICATIVE_OPERATOR PrimaryExpression MULTIPLICATIVE_OPERATOR PrimaryExpression
+     *  ;
      */
     MultiplicativeExpression() {
         return this._BinaryExpression(
@@ -265,6 +256,7 @@ class Parser {
     /**
      * ParenthesizedExpression
      *  : '(' Expression ')'
+     *  ;
      */
     ParenthesizedExpression() {
         this._eat('(');
