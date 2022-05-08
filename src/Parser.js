@@ -204,6 +204,10 @@ class Parser {
      *  ;
      */
     AdditiveExpression() {
+        return this._BinaryExpression(
+            'MultiplicativeExpression',
+            'ADDITIVE_OPERATOR'
+        );
         let left = this.MultiplicativeExpression();
 
         while (this._lookahead.type === 'ADDITIVE_OPERATOR') {
@@ -222,11 +226,21 @@ class Parser {
      * | MultiplicativeExpression MULTIPLICATIVE_OPERATOR PrimaryExpression -> PrimaryExpression MULTIPLICATIVE_OPERATOR PrimaryExpression MULTIPLICATIVE_OPERATOR PrimaryExpression
      */
     MultiplicativeExpression() {
-        let left = this.PrimaryExpression();
+        return this._BinaryExpression(
+            'PrimaryExpression',
+            'MULTIPLICATIVE_OPERATOR'
+        );
+    }
 
-        while (this._lookahead.type === 'MULTIPLICATIVE_OPERATOR') {
-            const operator = this._eat('MULTIPLICATIVE_OPERATOR').value;
-            const right = this.PrimaryExpression();
+    /**
+     * Generic binary expression creation for both additive and multiplicative operators
+     */
+    _BinaryExpression(builderName, operatorToken) {
+        let left = this[builderName]();
+
+        while (this._lookahead.type === operatorToken) {
+            const operator = this._eat(operatorToken).value;
+            const right = this[builderName]();
             left = factory.BinaryExpression(operator, left, right);
         }
 
