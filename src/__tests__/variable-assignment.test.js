@@ -68,3 +68,32 @@
         }]
     });
  });
+
+ test("test complex variable assignment", () => {
+    // arrange
+    const program = `
+        x += 42;
+    `;
+    const parser = new Parser();
+    // act
+    const ast = parser.parse(program);
+    // assert
+    expect(ast).toStrictEqual({
+        type: 'Program',
+        body: [{
+            type: 'ExpressionStatement',
+            expression: {
+                type: 'AssignmentExpression',
+                operator: '+=',
+                left: {
+                    type: 'Identifier',
+                    name: 'x',
+                },
+                right: {
+                    type: 'NumericLiteral',
+                    value: 42,
+                }
+            }
+        }]
+    });
+ });
