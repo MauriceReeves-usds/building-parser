@@ -20,6 +20,11 @@ const Spec = [
     [/^\}/, '}'],
 
     // ---------------------------------
+    // MATH OPERATORS: +, -
+    [/^[+\-]/, 'ADDITIVE_OPERATOR'],
+    [/^[\*\/]/, 'MULTIPLICATIVE_OPERATOR'],
+
+    // ---------------------------------
     // NUMBERS
     [/^\d+/, 'NUMBER'],
 
