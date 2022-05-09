@@ -1,33 +1,34 @@
 /**
  * block statement test runner
  */
-const {Parser} = require('../Parser');
+const { expect, test } = require('@jest/globals');
+const { Parser } = require('../Parser');
 
-test("test empty block statement", () => {
-    // arrange
-    const program = `
+test('test empty block statement', () => {
+  // arrange
+  const program = `
     {
 
     }
     `;
-    const parser = new Parser();
-    // act
-    const ast = parser.parse(program);
-    // assert
-    expect(ast).toStrictEqual(
-        { 
-            type: 'Program',
-            body: [ {
-                type: 'BlockStatement',
-                body: []
-            }]
-        }
-    );
+  const parser = new Parser();
+  // act
+  const ast = parser.parse(program);
+  // assert
+  expect(ast).toStrictEqual(
+    {
+      type: 'Program',
+      body: [{
+        type: 'BlockStatement',
+        body: [],
+      }],
+    },
+  );
 });
 
-test("test block statement with just comments", () => {
-    // arrange
-    const program = `
+test('test block statement with just comments', () => {
+  // arrange
+  const program = `
     {
         // single line comment
 
@@ -36,60 +37,60 @@ test("test block statement with just comments", () => {
          */
     }
     `;
-    const parser = new Parser();
-    // act
-    const ast = parser.parse(program);
-    // assert
-    expect(ast).toStrictEqual(
-        { 
-            type: 'Program',
-            body: [ {
-                type: 'BlockStatement',
-                body: []
-            }]
-        }
-    );
+  const parser = new Parser();
+  // act
+  const ast = parser.parse(program);
+  // assert
+  expect(ast).toStrictEqual(
+    {
+      type: 'Program',
+      body: [{
+        type: 'BlockStatement',
+        body: [],
+      }],
+    },
+  );
 });
 
-test("test block statement with expressions", () => {
-    // arrange
-    const program = `
+test('test block statement with expressions', () => {
+  // arrange
+  const program = `
     {
         42;
 
         "hello";
     }
     `;
-    const parser = new Parser();
-    // act
-    const ast = parser.parse(program);
-    // assert
-    expect(ast).toStrictEqual(
-        { 
-            type: 'Program',
-            body: [{
-                type: 'BlockStatement',
-                body: [{
-                    type: 'ExpressionStatement',
-                    expression: {
-                        type: 'NumericLiteral',
-                        value: 42
-                    }
-                }, {
-                    type: 'ExpressionStatement',
-                    expression: {
-                        type: 'StringLiteral',
-                        value: "hello"
-                    }
-                }]
-            }]
-        }
-    );
+  const parser = new Parser();
+  // act
+  const ast = parser.parse(program);
+  // assert
+  expect(ast).toStrictEqual(
+    {
+      type: 'Program',
+      body: [{
+        type: 'BlockStatement',
+        body: [{
+          type: 'ExpressionStatement',
+          expression: {
+            type: 'NumericLiteral',
+            value: 42,
+          },
+        }, {
+          type: 'ExpressionStatement',
+          expression: {
+            type: 'StringLiteral',
+            value: 'hello',
+          },
+        }],
+      }],
+    },
+  );
 });
 
-test("test block statement with expressions and comments", () => {
-    // arrange
-    const program = `
+test('test block statement with expressions and comments', () => {
+  // arrange
+  const program = `
     {
         // a single line comment
         42;
@@ -100,36 +101,36 @@ test("test block statement with expressions and comments", () => {
         "hello";
     }
     `;
-    const parser = new Parser();
-    // act
-    const ast = parser.parse(program);
-    // assert
-    expect(ast).toStrictEqual(
-        { 
-            type: 'Program',
-            body: [{
-                type: 'BlockStatement',
-                body: [{
-                    type: 'ExpressionStatement',
-                    expression: {
-                        type: 'NumericLiteral',
-                        value: 42
-                    }
-                }, {
-                    type: 'ExpressionStatement',
-                    expression: {
-                        type: 'StringLiteral',
-                        value: "hello"
-                    }
-                }]
-            }]
-        }
-    );
+  const parser = new Parser();
+  // act
+  const ast = parser.parse(program);
+  // assert
+  expect(ast).toStrictEqual(
+    {
+      type: 'Program',
+      body: [{
+        type: 'BlockStatement',
+        body: [{
+          type: 'ExpressionStatement',
+          expression: {
+            type: 'NumericLiteral',
+            value: 42,
+          },
+        }, {
+          type: 'ExpressionStatement',
+          expression: {
+            type: 'StringLiteral',
+            value: 'hello',
+          },
+        }],
+      }],
+    },
+  );
 });
 
-test("test nested blocks", () => {
-    // arrange
-    const program = `
+test('test nested blocks', () => {
+  // arrange
+  const program = `
     {
         {
             // a single line comment
@@ -144,35 +145,35 @@ test("test nested blocks", () => {
         }
     }
     `;
-    const parser = new Parser();
-    // act
-    const ast = parser.parse(program);
-    // assert
-    expect(ast).toStrictEqual(
-        { 
-            type: 'Program',
-            body: [{
-                type: 'BlockStatement',
-                body: [{
-                    type: 'BlockStatement',
-                    body: [{
-                        type: 'ExpressionStatement',
-                        expression: {
-                            type: 'NumericLiteral',
-                            value: 42
-                        }
-                    }]
-                }, {
-                    type: 'BlockStatement',
-                    body: [{
-                        type: 'ExpressionStatement',
-                        expression: {
-                            type: 'StringLiteral',
-                            value: "hello"
-                        }
-                    }]
-                }]
-            }]
-        }
-    );
+  const parser = new Parser();
+  // act
+  const ast = parser.parse(program);
+  // assert
+  expect(ast).toStrictEqual(
+    {
+      type: 'Program',
+      body: [{
+        type: 'BlockStatement',
+        body: [{
+          type: 'BlockStatement',
+          body: [{
+            type: 'ExpressionStatement',
+            expression: {
+              type: 'NumericLiteral',
+              value: 42,
+            },
+          }],
+        }, {
+          type: 'BlockStatement',
+          body: [{
+            type: 'ExpressionStatement',
+            expression: {
+              type: 'StringLiteral',
+              value: 'hello',
+            },
+          }],
+        }],
+      }],
+    },
+  );
 });

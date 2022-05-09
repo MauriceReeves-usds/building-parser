@@ -1,12 +1,11 @@
 /**
- * 
+ *
  */
- const {Parser} = require('Parser');
+const { Parser } = require('./Parser');
 
- const program = `
+const program = `
      x *= 5;
  `;
- const parser = new Parser();
- const ast = parser.parse(program);
- console.log(ast);
- 
+const parser = new Parser();
+const ast = parser.parse(program);
+console.log(ast);
