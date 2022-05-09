@@ -1,3 +1,5 @@
+/* eslint-disable no-continue */
+/* eslint-disable no-restricted-syntax */
 /**
  * Tokenizer spec
  */
@@ -114,7 +116,7 @@ class Tokenizer {
       const tokenValue = this.match(regexp, string);
 
       // try next token
-      if (tokenValue == null) continue;
+      if (tokenValue == null) { continue; }
 
       // a recognizable token but one we don't need
       // to handle because it's something like
