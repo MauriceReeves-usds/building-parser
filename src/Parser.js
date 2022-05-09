@@ -63,7 +63,20 @@ const DefaultFactory = {
             type: 'Identifier',
             name
         }
-    }
+    },
+    VariableStatement(declarations) {
+        return {
+            type: 'VariableStatement',
+            declarations
+        }
+    },
+    VariableDeclaration(id, init) {
+        return {
+            type: 'VariableDeclaration',
+            id,
+            init,
+        }
+    },
 }
 
 // ---------------------------------
@@ -153,6 +166,7 @@ class Parser {
      *  : ExpressionStatement
      *  | BlockStatement
      *  | EmptyStatement
+     *  | VariableStatement
      *  ;
      */
     Statement() {
@@ -161,9 +175,66 @@ class Parser {
                 return this.EmptyStatement();
             case '{':
                 return this.BlockStatement();
+            case 'let':
+                return this.VariableStatement();
             default:
                 return this.ExpressionStatement();
         }
+    }
+
+    /**
+     * VariableStatement
+     *  : 'let' VariableDeclarations ';'
+     *  ;
+     */
+    VariableStatement() {
+        this._eat('let');
+        const declarations = this.VariableDeclarationList();
+        this._eat(';')
+
+        return factory.VariableStatement(declarations);
+    }
+
+    /**
+     * VariableDeclarationList
+     *  : VariableDeclaration
+     *  | VariableDeclarationList ',' VariableDeclaration
+     *  ;
+     */
+    VariableDeclarationList() {
+        const declarations = [];
+
+        do {
+            declarations.push(this.VariableDeclaration());
+        } while (this._lookahead.type === ',' && this._eat(','));
+
+        return declarations;
+    }
+
+    /**
+     * VariableDeclaration
+     *  : Identifier OptVariableInitializer
+     *  ;
+     */
+    VariableDeclaration() {
+        const id = this.Identifier();
+
+        const init =
+            this._lookahead.type !== ';' && this._lookahead.type !== ','
+                ? this.VariableInitializer()
+                : null;
+
+        return factory.VariableDeclaration(id, init);
+    }
+
+    /**
+     * VariableInitializer
+     *  : SIMPLE_ASSIGN AssignmentExpress
+     *  ;
+     */
+    VariableInitializer() {
+        this._eat('SIMPLE_ASSIGN');
+        return this.AssignmentExpression();
     }
 
     /**
