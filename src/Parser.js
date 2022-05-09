@@ -1,7 +1,6 @@
 /**
  * Letter parser
  */
-const exp = require('constants');
 const {Tokenizer} = require('./Tokenizer');
 
 // ---------------------------------
@@ -154,7 +153,7 @@ class Parser {
     StatementList(stopLookahead = null) {
         const statementList = [this.Statement()];
 
-        while (this._lookahead != null && this._lookahead.type != stopLookahead) {
+        while (this._lookahead != null && this._lookahead.type !== stopLookahead) {
             statementList.push(this.Statement());
         }
 
@@ -283,7 +282,7 @@ class Parser {
     }
 
     _isAssignmentOperator(tokenType) {
-        return tokenType === 'SIMPLE_ASSIGN' || tokenType == 'COMPLEX_ASSIGN';
+        return tokenType === 'SIMPLE_ASSIGN' || tokenType === 'COMPLEX_ASSIGN';
     }
 
     _checkValidAssignmentTarget(node) {
