@@ -111,8 +111,8 @@ class Parser {
      * Initialize the parser
      */
   constructor() {
-    this._string = '';
-    this._tokenizer = new Tokenizer();
+    this.string = '';
+    this.tokenizer = new Tokenizer();
   }
 
   /**
@@ -120,13 +120,13 @@ class Parser {
      * @param {*} string
      */
   parse(string) {
-    this._string = string;
-    this._tokenizer.init(string);
+    this.string = string;
+    this.tokenizer.init(string);
 
     // prime the tokenizer to obtain the first
     // token which is our lookahead. The lookahead is
     // used for predictive parsing
-    this._lookahead = this._tokenizer.getNextToken();
+    this.lookahead = this.tokenizer.getNextToken();
 
     // parse recursively staring from the main
     // entry point
@@ -153,7 +153,7 @@ class Parser {
   StatementList(stopLookahead = null) {
     const statementList = [this.Statement()];
 
-    while (this._lookahead != null && this._lookahead.type !== stopLookahead) {
+    while (this.lookahead != null && this.lookahead.type !== stopLookahead) {
       statementList.push(this.Statement());
     }
 
@@ -170,7 +170,7 @@ class Parser {
      *  ;
      */
   Statement() {
-    switch (this._lookahead.type) {
+    switch (this.lookahead.type) {
       case ';':
         return this.EmptyStatement();
       case 'if':
@@ -196,7 +196,7 @@ class Parser {
     const test = this.Expression();
     this.eat(')');
     const consequent = this.Statement();
-    const alternate = this._lookahead != null && this._lookahead.type === 'else'
+    const alternate = this.lookahead != null && this.lookahead.type === 'else'
       ? this.eat('else') && this.Statement()
       : null;
 
@@ -232,7 +232,7 @@ class Parser {
 
     do {
       declarations.push(this.VariableDeclaration());
-    } while (this._lookahead.type === ',' && this.eat(','));
+    } while (this.lookahead.type === ',' && this.eat(','));
 
     return declarations;
   }
@@ -245,7 +245,7 @@ class Parser {
   VariableDeclaration() {
     const id = this.Identifier();
 
-    const init = this._lookahead.type !== ';' && this._lookahead.type !== ','
+    const init = this.lookahead.type !== ';' && this.lookahead.type !== ','
       ? this.VariableInitializer()
       : null;
 
@@ -280,7 +280,7 @@ class Parser {
   BlockStatement() {
     this.eat('{');
 
-    const body = this._lookahead.type !== '}' ? this.StatementList('}') : [];
+    const body = this.lookahead.type !== '}' ? this.StatementList('}') : [];
 
     this.eat('}');
 
@@ -307,11 +307,11 @@ class Parser {
     return this.AssignmentExpression();
   }
 
-  _isAssignmentOperator(tokenType) {
+  static isAssignmentOperator(tokenType) {
     return tokenType === 'SIMPLE_ASSIGN' || tokenType === 'COMPLEX_ASSIGN';
   }
 
-  _checkValidAssignmentTarget(node) {
+  static checkValidAssignmentTarget(node) {
     if (node.type === 'Identifier') {
       return node;
     }
@@ -327,13 +327,13 @@ class Parser {
   AssignmentExpression() {
     const left = this.LogicalORExpression();
 
-    if (!this._isAssignmentOperator(this._lookahead.type)) {
+    if (!Parser.isAssignmentOperator(this.lookahead.type)) {
       return left;
     }
 
     return factory.AssignmentOperator(
       this.AssignmentOperator().value,
-      this._checkValidAssignmentTarget(left),
+      Parser.checkValidAssignmentTarget(left),
       this.AssignmentExpression(),
     );
   }
@@ -345,7 +345,7 @@ class Parser {
      *  ;
      */
   EqualityExpression() {
-    return this._BinaryExpression(
+    return this.BinaryExpression(
       'RelationalExpression',
       'EQUALITY_OPERATOR',
     );
@@ -359,7 +359,7 @@ class Parser {
      *  | AdditiveExpression RELATIONAL_OPERATOR RelationalExpression
      */
   RelationalExpression() {
-    return this._BinaryExpression('AdditiveExpression', 'RELATIONAL_OPERATOR');
+    return this.BinaryExpression('AdditiveExpression', 'RELATIONAL_OPERATOR');
   }
 
   /**
@@ -369,7 +369,7 @@ class Parser {
      *  ;
      */
   AssignmentOperator() {
-    if (this._lookahead.type === 'SIMPLE_ASSIGN') {
+    if (this.lookahead.type === 'SIMPLE_ASSIGN') {
       return this.eat('SIMPLE_ASSIGN');
     }
     return this.eat('COMPLEX_ASSIGN');
@@ -382,7 +382,7 @@ class Parser {
      *  ;
      */
   LogicalANDExpression() {
-    return this._LogicalExpression('EqualityExpression', 'LOGICAL_AND');
+    return this.LogicalExpression('EqualityExpression', 'LOGICAL_AND');
   }
 
   /**
@@ -392,16 +392,16 @@ class Parser {
      *  ;
      */
   LogicalORExpression() {
-    return this._LogicalExpression('LogicalANDExpression', 'LOGICAL_OR');
+    return this.LogicalExpression('LogicalANDExpression', 'LOGICAL_OR');
   }
 
   /**
      * Generic helper for logical expression nodes
      */
-  _LogicalExpression(builderName, operatorToken) {
+  LogicalExpression(builderName, operatorToken) {
     let left = this[builderName]();
 
-    while (this._lookahead.type === operatorToken) {
+    while (this.lookahead.type === operatorToken) {
       const operator = this.eat(operatorToken).value;
       const right = this[builderName]();
       left = {
@@ -432,11 +432,11 @@ class Parser {
   /**
      * AdditiveExpression
      *  : MultiplicativeExpression
-     *  | AdditiveExpression ADDITIVE_OPERATOR MultiplicativeExpression -> MultiplicativeExpression ADDITIVE_OPERATOR MultiplicativeExpression ADDITIVE_OPERATOR MultiplicativeExpression
+     *  | AdditiveExpression ADDITIVE_OPERATOR MultiplicativeExpression
      *  ;
      */
   AdditiveExpression() {
-    return this._BinaryExpression(
+    return this.BinaryExpression(
       'MultiplicativeExpression',
       'ADDITIVE_OPERATOR',
     );
@@ -445,11 +445,11 @@ class Parser {
   /**
      * MultiplicativeExpression
      *  : PrimaryExpression
-     *  | MultiplicativeExpression MULTIPLICATIVE_OPERATOR PrimaryExpression -> PrimaryExpression MULTIPLICATIVE_OPERATOR PrimaryExpression MULTIPLICATIVE_OPERATOR PrimaryExpression
+     *  | MultiplicativeExpression MULTIPLICATIVE_OPERATOR PrimaryExpression
      *  ;
      */
   MultiplicativeExpression() {
-    return this._BinaryExpression(
+    return this.BinaryExpression(
       'PrimaryExpression',
       'MULTIPLICATIVE_OPERATOR',
     );
@@ -458,10 +458,10 @@ class Parser {
   /**
      * Generic binary expression creation for both additive and multiplicative operators
      */
-  _BinaryExpression(builderName, operatorToken) {
+  BinaryExpression(builderName, operatorToken) {
     let left = this[builderName]();
 
-    while (this._lookahead.type === operatorToken) {
+    while (this.lookahead.type === operatorToken) {
       const operator = this.eat(operatorToken).value;
       const right = this[builderName]();
       left = factory.BinaryExpression(operator, left, right);
@@ -478,10 +478,10 @@ class Parser {
      *  ;
      */
   PrimaryExpression() {
-    if (this._isLiteral(this._lookahead.type)) {
+    if (Parser.isLiteral(this.lookahead.type)) {
       return this.Literal();
     }
-    switch (this._lookahead.type) {
+    switch (this.lookahead.type) {
       case '(':
         return this.ParenthesizedExpression();
       default:
@@ -489,7 +489,7 @@ class Parser {
     }
   }
 
-  _isLiteral(tokenType) {
+  static isLiteral(tokenType) {
     return (
       tokenType === 'NUMBER'
             || tokenType === 'STRING'
@@ -518,7 +518,7 @@ class Parser {
      *  ;
      */
   Literal() {
-    switch (this._lookahead.type) {
+    switch (this.lookahead.type) {
       case 'NUMBER':
         return this.NumericLiteral();
       case 'STRING':
@@ -529,8 +529,9 @@ class Parser {
         return this.BooleanLiteral(false);
       case 'null':
         return this.NullLiteral();
+      default:
+        throw new SyntaxError(`Literal: unexpected literal production: "${this.lookahead.type}"`);
     }
-    throw new SyntaxError(`Literal: unexpected literal production: "${this._lookahead.type}"`);
   }
 
   /**
@@ -586,7 +587,7 @@ class Parser {
      * @returns
      */
   eat(tokenType) {
-    const token = this._lookahead;
+    const token = this.lookahead;
 
     if (token == null) {
       throw new SyntaxError(
@@ -601,7 +602,7 @@ class Parser {
     }
 
     // advance to the next token
-    this._lookahead = this._tokenizer.getNextToken();
+    this.lookahead = this.tokenizer.getNextToken();
 
     // return token
     return token;
