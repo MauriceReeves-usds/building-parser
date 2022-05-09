@@ -48,12 +48,12 @@ const Spec = [
   // ---------------------------------
   // ASSIGNMENT OPERATORS: =, *=, /=, +=, -=
   [/^=/, 'SIMPLE_ASSIGN'],
-  [/^[\*\/\+\-]=/, 'COMPLEX_ASSIGN'],
+  [/^[*/+-]=/, 'COMPLEX_ASSIGN'],
 
   // ---------------------------------
   // MATH OPERATORS: +, -, *, /
-  [/^[+\-]/, 'ADDITIVE_OPERATOR'],
-  [/^[\*\/]/, 'MULTIPLICATIVE_OPERATOR'],
+  [/^[+-]/, 'ADDITIVE_OPERATOR'],
+  [/^[*/]/, 'MULTIPLICATIVE_OPERATOR'],
 
   // ---------------------------------
   // LOGICAL OPERATORS: &&, ||
