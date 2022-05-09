@@ -25,6 +25,11 @@ const Spec = [
     // ---------------------------------
     // KEYWORDS
     [/^\blet\b/, 'let'],
+    [/^\bif\b/, 'if'],
+    [/^\belse\b/, 'else'],
+    [/^\btrue\b/, 'true'],
+    [/^\bfalse\b/, 'false'],
+    [/^\bnull\b/, 'null'],
 
     // ---------------------------------
     // NUMBERS
@@ -35,6 +40,10 @@ const Spec = [
     [/^\w+/, 'IDENTIFIER'],
 
     // ---------------------------------
+    // EQUALITY OPERATORS: ==, !=
+    [/^[=!]=/, 'EQUALITY_OPERATOR'],
+
+    // ---------------------------------
     // ASSIGNMENT OPERATORS: =, *=, /=, +=, -=
     [/^=/, 'SIMPLE_ASSIGN'],
     [/^[\*\/\+\-]=/, 'COMPLEX_ASSIGN'],
@@ -43,6 +52,15 @@ const Spec = [
     // MATH OPERATORS: +, -, *, /
     [/^[+\-]/, 'ADDITIVE_OPERATOR'],
     [/^[\*\/]/, 'MULTIPLICATIVE_OPERATOR'],
+
+    // ---------------------------------
+    // LOGICAL OPERATORS: &&, ||
+    [/^&&/, 'LOGICAL_AND'],
+    [/^\|\|/, 'LOGICAL_OR'],
+
+    // ---------------------------------
+    // RELATIONAL OPERATORS: >, >=, <, <=
+    [/^[><]=?/, 'RELATIONAL_OPERATOR'],
 
     // ---------------------------------
     // STRINGS
