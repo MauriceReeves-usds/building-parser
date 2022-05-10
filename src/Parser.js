@@ -167,6 +167,7 @@ class Parser {
      *  | EmptyStatement
      *  | VariableStatement
      *  | IfStatement
+     *  | IterationStatement
      *  ;
      */
   Statement() {
@@ -179,9 +180,110 @@ class Parser {
         return this.BlockStatement();
       case 'let':
         return this.VariableStatement();
+      case 'do':
+      case 'for':
+      case 'while':
+        return this.IterationStatement();
       default:
         return this.ExpressionStatement();
     }
+  }
+
+  /**
+   * IterationStatement
+   *  : WhileStatement
+   *  | DoWhileStatement
+   *  | ForStatement
+   *  ;
+   */
+  IterationStatement() {
+    switch (this.lookahead.type) {
+      case 'while':
+        return this.WhileStatement();
+      case 'do':
+        return this.DoWhileStatement();
+      case 'for':
+        return this.ForStatement();
+      default:
+        throw new SyntaxError(`Unknown Iteration Statement Type: ${this.lookahead.type}`);
+    }
+  }
+
+  /**
+   * WhileStatement
+   *  : 'while' '(' Expression ')' Statement
+   *  ;
+   */
+  WhileStatement() {
+    this.eat('while');
+    this.eat('(');
+    const test = this.Expression();
+    this.eat(')');
+    const body = this.Statement();
+
+    return {
+      type: 'WhileStatement',
+      test,
+      body,
+    };
+  }
+
+  /**
+   * DoWhileStatement
+   *  : 'do' Statement 'while' '(' Expression ')'
+   *  ;
+   */
+  DoWhileStatement() {
+    this.eat('do');
+    const body = this.Statement();
+    this.eat('while');
+    this.eat('(');
+    const test = this.Expression();
+    this.eat(')');
+    this.eat(';');
+
+    return {
+      type: 'DoWhileStatement',
+      body,
+      test,
+    };
+  }
+
+  /**
+   * ForStatement
+   *  : 'for' '(' OptForStatementInit ';' OptExpression ';' OptExpression ')' Statement
+   *  ;
+   */
+  ForStatement() {
+    this.eat('for');
+    this.eat('(');
+    const init = this.lookahead.type !== ';' ? this.ForStatementInit() : null;
+    const test = this.lookahead.type !== ';' ? this.Expression() : null;
+    const update = this.lookahead.type !== ')' ? this.Expression() : null;
+    this.eat(')');
+    const body = this.Statement();
+
+    return {
+      type: 'ForStatement',
+      init,
+      test,
+      update,
+      body,
+    };
+  }
+
+  /**
+   * ForStatementInit
+   *  : VariableStatementInit
+   *  | Expression
+   *  ;
+   * ;
+   */
+  ForStatementInit() {
+    if (this.lookahead.type === 'let') {
+      return this.VariableStatementInit();
+    }
+    return this.Expression();
   }
 
   /**
@@ -209,16 +311,29 @@ class Parser {
   }
 
   /**
+   * VariableStatementInit
+   *  : 'let' VariableDeclarationList
+   *  ;
+   */
+  VariableStatementInit() {
+    this.eat('let');
+    const declarations = this.VariableDeclarationList();
+    return {
+      type: 'VariableStatement',
+      declarations,
+    };
+  }
+
+  /**
      * VariableStatement
-     *  : 'let' VariableDeclarations ';'
+     *  : VariableStatementInit ';'
      *  ;
      */
   VariableStatement() {
-    this.eat('let');
-    const declarations = this.VariableDeclarationList();
+    const variableStatement = this.VariableStatementInit();
     this.eat(';');
 
-    return factory.VariableStatement(declarations);
+    return variableStatement;
   }
 
   /**
@@ -417,11 +532,11 @@ class Parser {
 
   /**
      * LeftHandSideExpression
-     *  : Identifier
+     *  : PrimaryExpression
      *  ;
      */
   LeftHandSideExpression() {
-    return this.Identifier();
+    return this.PrimaryExpression();
   }
 
   Identifier() {
@@ -444,13 +559,13 @@ class Parser {
 
   /**
      * MultiplicativeExpression
-     *  : PrimaryExpression
-     *  | MultiplicativeExpression MULTIPLICATIVE_OPERATOR PrimaryExpression
+     *  : UnaryExpression
+     *  | MultiplicativeExpression MULTIPLICATIVE_OPERATOR UnaryExpression
      *  ;
      */
   MultiplicativeExpression() {
     return this.BinaryExpression(
-      'PrimaryExpression',
+      'UnaryExpression',
       'MULTIPLICATIVE_OPERATOR',
     );
   }
@@ -471,10 +586,42 @@ class Parser {
   }
 
   /**
+   * UnaryExpression
+   *  : LeftHandSideExpression
+   *  | ADDITIVE_OPERATOR UnaryExpression
+   *  | LOGICAL_NOT UnaryExpression
+   *  ;
+   */
+  UnaryExpression() {
+    let operator;
+    switch (this.lookahead.type) {
+      case 'ADDITIVE_OPERATOR':
+        operator = this.eat('ADDITIVE_OPERATOR').value;
+        break;
+      case 'LOGICAL_NOT':
+        operator = this.eat('LOGICAL_NOT').value;
+        break;
+      default:
+        // we don't want to do anything here, fall through
+        break;
+    }
+
+    if (operator != null) {
+      return {
+        type: 'UnaryExpression',
+        operator,
+        argument: this.UnaryExpression(),
+      };
+    }
+
+    return this.LeftHandSideExpression();
+  }
+
+  /**
      * PrimaryExpression
      *  : Literal
      *  | ParenthesizedExpression
-     *  | LeftHandSideExpression
+     *  | Identifier
      *  ;
      */
   PrimaryExpression() {
@@ -484,6 +631,8 @@ class Parser {
     switch (this.lookahead.type) {
       case '(':
         return this.ParenthesizedExpression();
+      case 'IDENTIFIER':
+        return this.Identifier();
       default:
         return this.LeftHandSideExpression();
     }

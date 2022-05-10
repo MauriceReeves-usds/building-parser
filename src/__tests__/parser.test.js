@@ -1,3 +1,4 @@
+/* eslint-disable quotes */
 /**
  * Main test runner
  */
@@ -48,7 +49,7 @@ test('Test parsing string literal with double quotes', () => {
 
 test('Test parsing string literal with single quotes', () => {
   // arrange
-  const program = '\'hello\';';
+  const program = `'hello';`;
   const parser = new Parser();
   // act
   const ast = parser.parse(program);

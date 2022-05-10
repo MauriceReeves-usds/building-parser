@@ -1,85 +1,125 @@
 /**
  * variable assignment test runner
  */
-const { expect, test } = require('@jest/globals');
+const {
+  expect, test, describe, beforeEach,
+} = require('@jest/globals');
 const { Parser } = require('../Parser');
 
-test('variable declaration with initialization', () => {
-  // arrange
-  const program = 'let x = 42;';
-  const parser = new Parser();
-  // act
-  const ast = parser.parse(program);
-  // assert
-  expect(ast).toStrictEqual({
-    type: 'Program',
-    body: [{
-      type: 'VariableStatement',
-      declarations: [{
-        type: 'VariableDeclaration',
-        id: {
-          type: 'Identifier',
-          name: 'x',
-        },
-        init: {
-          type: 'NumericLiteral',
-          value: 42,
-        },
-      }],
-    }],
-  });
-});
+describe('Variable declarations and assignments', () => {
+  let parser;
 
-test('variable declaration without initialization', () => {
-  // arrange
-  const program = 'let x;';
-  const parser = new Parser();
-  // act
-  const ast = parser.parse(program);
-  // assert
-  expect(ast).toStrictEqual({
-    type: 'Program',
-    body: [{
-      type: 'VariableStatement',
-      declarations: [{
-        type: 'VariableDeclaration',
-        id: {
-          type: 'Identifier',
-          name: 'x',
-        },
-        init: null,
-      }],
-    }],
+  beforeEach(() => {
+    parser = new Parser();
   });
-});
 
-test('multiple variable declarations', () => {
-  // arrange
-  const program = 'let x, y;';
-  const parser = new Parser();
-  // act
-  const ast = parser.parse(program);
-  // assert
-  expect(ast).toStrictEqual({
-    type: 'Program',
-    body: [{
-      type: 'VariableStatement',
-      declarations: [{
-        type: 'VariableDeclaration',
-        id: {
-          type: 'Identifier',
-          name: 'x',
-        },
-        init: null,
-      },
-      {
-        type: 'VariableDeclaration',
-        id: {
-          type: 'Identifier',
-          name: 'y',
-        },
-        init: null,
+  test('variable declaration with initialization', () => {
+    // arrange
+    const program = 'let x = 42;';
+    // act
+    const ast = parser.parse(program);
+    // assert
+    expect(ast).toStrictEqual({
+      type: 'Program',
+      body: [{
+        type: 'VariableStatement',
+        declarations: [{
+          type: 'VariableDeclaration',
+          id: {
+            type: 'Identifier',
+            name: 'x',
+          },
+          init: {
+            type: 'NumericLiteral',
+            value: 42,
+          },
+        }],
       }],
-    }],
+    });
+  });
+
+  test('variable declaration without initialization', () => {
+    // arrange
+    const program = 'let x;';
+    // act
+    const ast = parser.parse(program);
+    // assert
+    expect(ast).toStrictEqual({
+      type: 'Program',
+      body: [{
+        type: 'VariableStatement',
+        declarations: [{
+          type: 'VariableDeclaration',
+          id: {
+            type: 'Identifier',
+            name: 'x',
+          },
+          init: null,
+        }],
+      }],
+    });
+  });
+
+  test('multiple variable declarations', () => {
+    // arrange
+    const program = 'let x, y;';
+    // act
+    const ast = parser.parse(program);
+    // assert
+    expect(ast).toStrictEqual({
+      type: 'Program',
+      body: [{
+        type: 'VariableStatement',
+        declarations: [{
+          type: 'VariableDeclaration',
+          id: {
+            type: 'Identifier',
+            name: 'x',
+          },
+          init: null,
+        },
+        {
+          type: 'VariableDeclaration',
+          id: {
+            type: 'Identifier',
+            name: 'y',
+          },
+          init: null,
+        }],
+      }],
+    });
+  });
+
+  test('complex declaration and assignment', () => {
+    const ast = parser.parse('let x = y + 1;');
+    expect(ast).toStrictEqual({
+      type: 'Program',
+      body: [
+        {
+          type: 'VariableStatement',
+          declarations: [
+            {
+              type: 'VariableDeclaration',
+              id: {
+                type: 'Identifier',
+                name: 'x',
+              },
+              init: {
+                type: 'BinaryExpression',
+                operator: '+',
+                left: {
+                  type: 'Identifier',
+                  name: 'y',
+                },
+                right: {
+                  type: 'NumericLiteral',
+                  value: 1,
+                },
+              },
+            },
+          ],
+        },
+      ],
+    });
   });
 });
