@@ -1,6 +1,9 @@
 # IDEA
 .idea/
 
+# TSC built dir
+built/
+
 # Logs
 logs
 *.log
