@@ -168,6 +168,8 @@ class Parser {
      *  | VariableStatement
      *  | IfStatement
      *  | IterationStatement
+     *  | FunctionDeclaration
+     *  | ReturnStatement
      *  ;
      */
   Statement() {
@@ -180,6 +182,10 @@ class Parser {
         return this.BlockStatement();
       case 'let':
         return this.VariableStatement();
+      case 'def':
+        return this.FunctionDeclaration();
+      case 'return':
+        return this.ReturnStatement();
       case 'do':
       case 'for':
       case 'while':
@@ -187,6 +193,57 @@ class Parser {
       default:
         return this.ExpressionStatement();
     }
+  }
+
+  /**
+   * FunctionDeclaration
+   *  : 'def' Identifier '(' OptFormalParameterList ')' BlockStatement
+   */
+  FunctionDeclaration() {
+    this.eat('def');
+    const name = this.Identifier();
+    this.eat('(');
+    const params = this.lookahead.type !== ')' ? this.FormalParameterList() : [];
+    this.eat(')');
+    const body = this.BlockStatement();
+
+    return {
+      type: 'FunctionDeclaration',
+      name,
+      params,
+      body,
+    };
+  }
+
+  /**
+   * FormalParameterList
+   *  : Identifier
+   *  | FormalParameterList ',' Identifier
+   */
+  FormalParameterList() {
+    const params = [];
+
+    do {
+      params.push(this.Identifier());
+    } while (this.lookahead.type === ',' && this.eat(','));
+
+    return params;
+  }
+
+  /**
+   * ReturnStatement
+   *  : 'return' OptExpression
+   *  ;
+   */
+  ReturnStatement() {
+    this.eat('return');
+    const argument = this.lookahead.type !== ';' ? this.Expression() : null;
+    this.eat(';');
+
+    return {
+      type: 'ReturnStatement',
+      argument,
+    };
   }
 
   /**
@@ -258,9 +315,12 @@ class Parser {
     this.eat('for');
     this.eat('(');
     const init = this.lookahead.type !== ';' ? this.ForStatementInit() : null;
+    this.eat(';');
     const test = this.lookahead.type !== ';' ? this.Expression() : null;
+    this.eat(';');
     const update = this.lookahead.type !== ')' ? this.Expression() : null;
     this.eat(')');
+
     const body = this.Statement();
 
     return {

@@ -128,10 +128,10 @@ describe('All our iteration statement tests', () => {
     });
   });
 
-  test.skip('parse for loop', () => {
+  test('parse for loop', () => {
     const program = `
             for (let i = 0; i < 10; i += 1) {
-                x += 1;
+                x += i;
             }
         `;
     const ast = parser.parse(program);
@@ -180,6 +180,46 @@ describe('All our iteration statement tests', () => {
               value: 1,
             },
           },
+          body: {
+            type: 'BlockStatement',
+            body: [
+              {
+                type: 'ExpressionStatement',
+                expression: {
+                  type: 'AssignmentExpression',
+                  operator: '+=',
+                  left: {
+                    type: 'Identifier',
+                    name: 'x',
+                  },
+                  right: {
+                    type: 'Identifier',
+                    name: 'i',
+                  },
+                },
+              },
+            ],
+          },
+        },
+      ],
+    });
+  });
+
+  test('parse for loop with empty initializer', () => {
+    const program = `
+            for (; ;) {
+                x += i;
+            }
+        `;
+    const ast = parser.parse(program);
+    expect(ast).toStrictEqual({
+      type: 'Program',
+      body: [
+        {
+          type: 'ForStatement',
+          init: null,
+          test: null,
+          update: null,
           body: {
             type: 'BlockStatement',
             body: [
