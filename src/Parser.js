@@ -170,6 +170,7 @@ class Parser {
      *  | IterationStatement
      *  | FunctionDeclaration
      *  | ReturnStatement
+     *  | ClassDeclaration
      *  ;
      */
   Statement() {
@@ -184,6 +185,8 @@ class Parser {
         return this.VariableStatement();
       case 'def':
         return this.FunctionDeclaration();
+      case 'class':
+        return this.ClassDeclaration();
       case 'return':
         return this.ReturnStatement();
       case 'do':
@@ -193,6 +196,37 @@ class Parser {
       default:
         return this.ExpressionStatement();
     }
+  }
+
+  /**
+   * ClassDeclaration
+   *  : 'class' Identifier OptClassExtends BlockStatement
+   */
+  ClassDeclaration() {
+    this.eat('class');
+
+    const id = this.Identifier();
+    const superClass = this.lookahead.type === 'extends'
+      ? this.ClassExtends()
+      : null;
+    const body = this.BlockStatement();
+
+    return {
+      type: 'ClassDeclaration',
+      id,
+      superClass,
+      body,
+    };
+  }
+
+  /**
+   * ClassExtends
+   *  : 'extends' Identifier
+   *  ;
+   */
+  ClassExtends() {
+    this.eat('extends');
+    return this.Identifier();
   }
 
   /**
@@ -606,6 +640,11 @@ class Parser {
    *  ;
    */
   CallMemberExpression() {
+    // check for super call
+    if (this.lookahead.type === 'super') {
+      return this.CallExpression(this.Super());
+    }
+
     const member = this.MemberExpression();
 
     if (this.lookahead.type === '(') {
@@ -791,6 +830,8 @@ class Parser {
      *  : Literal
      *  | ParenthesizedExpression
      *  | Identifier
+     *  | ThisExpression
+     *  | NewExpression
      *  ;
      */
   PrimaryExpression() {
@@ -802,11 +843,58 @@ class Parser {
         return this.ParenthesizedExpression();
       case 'IDENTIFIER':
         return this.Identifier();
+      case 'this':
+        return this.ThisExpression();
+      case 'new':
+        return this.NewExpression();
       default:
         return this.LeftHandSideExpression();
     }
   }
 
+  /**
+   * NewExpression
+   *  : 'new' MemberExpression Arguments
+   *  ;
+   */
+  NewExpression() {
+    this.eat('new');
+    return {
+      type: 'NewExpression',
+      callee: this.MemberExpression(),
+      arguments: this.Arguments(),
+    };
+  }
+
+  /**
+   * ThisExpression
+   *  : 'this'
+   *  ;
+   */
+  ThisExpression() {
+    this.eat('this');
+    return {
+      type: 'ThisExpression',
+    };
+  }
+
+  /**
+   * Super
+   *  : 'super'
+   *  ;
+   */
+  Super() {
+    this.eat('super');
+    return {
+      type: 'Super',
+    };
+  }
+
+  /**
+   *
+   * @param {*} tokenType
+   * @returns
+   */
   static isLiteral(tokenType) {
     return (
       tokenType === 'NUMBER'
