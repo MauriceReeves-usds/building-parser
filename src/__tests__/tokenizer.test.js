@@ -1,47 +1,58 @@
 /**
  * All our tokenizer tests
  */
-const { expect, test } = require('@jest/globals');
+const {
+  expect, test, describe, beforeEach,
+} = require('@jest/globals');
 const { Tokenizer } = require('../Tokenizer');
 
-// testing the tokenizer
-test('Test hasMoreTokens with empty string', () => {
-  // arrange
-  const tokenizer = new Tokenizer();
-  // act
-  tokenizer.init('');
-  // assert
-  expect(tokenizer.hasMoreTokens()).toBe(false);
-});
+describe('all our tokenizer tests', () => {
+  let tokenizer;
 
-test('Test hasMoreTokens with non-empty string', () => {
-  // arrange
-  const tokenizer = new Tokenizer();
-  // act
-  tokenizer.init('42');
-  // assert
-  expect(tokenizer.hasMoreTokens()).toBe(true);
-});
+  beforeEach(() => {
+    tokenizer = new Tokenizer();
+  });
 
-test('Test getNextToken with empty string', () => {
-  // arrange
-  const tokenizer = new Tokenizer();
-  // act
-  tokenizer.init('');
-  // assert
-  expect(tokenizer.getNextToken()).toBe(null);
-});
+  // testing the tokenizer
+  test('Test hasMoreTokens with empty string', () => {
+    // act
+    tokenizer.init('');
+    // assert
+    expect(tokenizer.hasMoreTokens()).toBe(false);
+  });
 
-test('Test getNextToken with non-empty string', () => {
-  // arrange
-  const tokenizer = new Tokenizer();
-  // act
-  tokenizer.init('42');
-  // assert
-  expect(tokenizer.getNextToken()).toStrictEqual(
-    {
+  test('Test hasMoreTokens with non-empty string', () => {
+    // act
+    tokenizer.init('42');
+    // assert
+    expect(tokenizer.hasMoreTokens()).toBe(true);
+  });
+
+  test('Test getNextToken with empty string', () => {
+    // act
+    tokenizer.init('');
+    // assert
+    expect(tokenizer.getNextToken()).toBe(null);
+  });
+
+  test('Test getNextToken with non-empty string', () => {
+    // act
+    tokenizer.init('42');
+    // assert
+    expect(tokenizer.getNextToken()).toStrictEqual(
+      {
+        type: 'NUMBER',
+        value: '42',
+      },
+    );
+  });
+
+  test.only('Test getNextToken with decimal number', () => {
+    // act
+    tokenizer.init('42.0');
+    expect(tokenizer.getNextToken()).toStrictEqual({
       type: 'NUMBER',
-      value: '42',
-    },
-  );
+      value: '42.0',
+    });
+  });
 });
