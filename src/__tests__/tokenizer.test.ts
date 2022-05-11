@@ -1,10 +1,10 @@
 /**
  * All our tokenizer tests
  */
-const {
+import {
   expect, test, describe, beforeEach,
-} = require('@jest/globals');
-const { Tokenizer } = require('../Tokenizer');
+}  from '@jest/globals';
+import Tokenizer  from '../Tokenizer';
 
 describe('all our tokenizer tests', () => {
   let tokenizer;

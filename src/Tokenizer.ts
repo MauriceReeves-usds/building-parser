@@ -6,7 +6,7 @@
  * when trying out different values. For example, a more specific number spec
  * needed to come first before the more general one that matches integers.
  */
-const Spec = [
+const Spec : Array<[RegExp, string]> = [
   // ---------------------------------
   // WHITESPACE
   [/^\s+/, null],
@@ -89,11 +89,23 @@ const Spec = [
 ];
 
 /**
+ * Token interface
+ */
+interface Token {
+  type: string,
+  value: string
+}
+
+/**
  * Tokenizer class.
  *
  * Lazily pulls a token from a stream
  */
-class Tokenizer {
+export default class Tokenizer {
+
+  private string: string;
+  private cursor: number;
+
   /**
      * Initializes the string
      * @param {*} string
@@ -107,21 +119,21 @@ class Tokenizer {
      * Shows we're at the end of the string
      * @returns
      */
-  isEOF() {
+  isEOF(): boolean {
     return this.cursor === this.string.length;
   }
 
   /**
      * Whether we still have more tokens
      */
-  hasMoreTokens() {
+  hasMoreTokens(): boolean {
     return this.cursor < this.string.length;
   }
 
   /**
      * Obtains next token
      */
-  getNextToken() {
+  getNextToken(): Token {
     if (!this.hasMoreTokens()) {
       return null;
     }
