@@ -1,7 +1,10 @@
 /* eslint-disable no-continue */
 /* eslint-disable no-restricted-syntax */
+
 /**
- * Tokenizer spec
+ * Tokenizer spec. This have to run from the most specific to the least specific
+ * when trying out different values. For example, a more specific number spec
+ * needed to come first before the more general one that matches integers.
  */
 const Spec = [
   // ---------------------------------
