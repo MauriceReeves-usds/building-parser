@@ -487,7 +487,7 @@ class Parser {
   }
 
   static checkValidAssignmentTarget(node) {
-    if (node.type === 'Identifier') {
+    if (node.type === 'Identifier' || node.type === 'MemberExpression') {
       return node;
     }
     throw new SyntaxError('Invalid left-hand side in assignment expression');
@@ -592,11 +592,120 @@ class Parser {
 
   /**
      * LeftHandSideExpression
-     *  : PrimaryExpression
+     *  : CallMemberExpression
      *  ;
      */
   LeftHandSideExpression() {
-    return this.PrimaryExpression();
+    return this.CallMemberExpression();
+  }
+
+  /**
+   * CallMemberExpression
+   *  : MemberExpression
+   *  | CallExpression
+   *  ;
+   */
+  CallMemberExpression() {
+    const member = this.MemberExpression();
+
+    if (this.lookahead.type === '(') {
+      return this.CallExpression(member);
+    }
+
+    return member;
+  }
+
+  /**
+   * Generic call expression helper
+   * CallExpression
+   *  : Callee Arguments
+   *  ;
+   *
+   *  Callee
+   *  : MemberExpression
+   *  | CallExpression
+   *  ;
+   */
+  CallExpression(callee) {
+    let callExpression = {
+      type: 'CallExpression',
+      callee,
+      arguments: this.Arguments(),
+    };
+
+    if (this.lookahead.type === '(') {
+      callExpression = this.CallExpression(callExpression);
+    }
+
+    return callExpression;
+  }
+
+  /**
+   * Arguments
+   *  : '(' OptArgumentList ')'
+   *  ;
+   */
+  Arguments() {
+    this.eat('(');
+    const argumentList = this.lookahead.type !== ')' ? this.ArgumentList() : [];
+    this.eat(')');
+
+    return argumentList;
+  }
+
+  /**
+   * ArgumentList
+   *  : AssignmentExpression
+   *  | ArgumentList ',' AssignmentExpression
+   *  ;
+   */
+  ArgumentList() {
+    const argumentList = [];
+
+    do {
+      argumentList.push(this.AssignmentExpression());
+    } while (this.lookahead.type === ',' && this.eat(','));
+
+    return argumentList;
+  }
+
+  /**
+   * MemberExpression
+   *  : PrimaryExpression
+   *  | MemberExpression '.' Identifier
+   *  | MemberExpression '[' Expression ']'
+   *  ;
+   */
+  MemberExpression() {
+    let object = this.PrimaryExpression();
+
+    while (this.lookahead.type === '.' || this.lookahead.type === '[') {
+      // a non-computed lookup
+      if (this.lookahead.type === '.') {
+        this.eat('.');
+        const property = this.Identifier();
+        object = {
+          type: 'MemberExpression',
+          computed: false,
+          object,
+          property,
+        };
+      }
+
+      if (this.lookahead.type === '[') {
+        this.eat('[');
+        const property = this.Expression();
+        this.eat(']');
+        object = {
+          type: 'MemberExpression',
+          computed: true,
+          object,
+          property,
+        };
+      }
+    }
+
+    return object;
   }
 
   Identifier() {
